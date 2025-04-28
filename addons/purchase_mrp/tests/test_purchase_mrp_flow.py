@@ -1234,3 +1234,77 @@ class TestPurchaseMrpFlow(AccountTestInvoicingCommon):
         # however, due to rounding differences, the expected value is 100
         svl_val = self.env['stock.valuation.layer'].search([('stock_move_id', '=', move.id)]).value
         self.assertEqual(svl_val, 100)
+
+    def test_valuation_by_lot_component_in_kit(self):
+        """
+        Test that a product can be valuated by lot when it is a component of a kit
+        """
+        avco_category = self.env['product.category'].create({
+            'name': 'AVCO',
+            'property_cost_method': 'average',
+            'property_valuation': 'real_time'
+        })
+        self.component_a.categ_id = avco_category
+        self.component_a.is_storable = True
+        self.component_a.lot_valuated = True
+        lot_a = self.env['stock.lot'].create({
+            'name': 'lot_a',
+            'product_id': self.component_a.id,
+        })
+        po = self.env['purchase.order'].create({
+            'partner_id': self.partner.id,
+            'order_line': [Command.create({
+                'product_id': self.kit_1.id,
+                'product_uom': self.kit_1.uom_id.id,
+                'price_unit': 60.0,
+                'product_qty': 2,
+            })],
+        })
+        po.button_confirm()
+        self.assertEqual(po.state, 'purchase')
+        self.assertEqual(self.component_a.standard_price, 0)
+        picking = po.picking_ids
+        move_line = picking.move_line_ids.filtered(lambda m:m.product_id == self.component_a)
+        move_line.lot_id = lot_a
+        picking.button_validate()
+        self.assertEqual(picking.state, 'done')
+        # The standard price of the component is updated to $10 because the kit cost
+        # is $60, there are 6 units of different components used in this BoM, and since
+        # the cost_share is equal, 60/6 = $10.
+        self.assertEqual(self.component_a.standard_price, 10)
+        self.assertEqual(lot_a.standard_price, 10)
+        self.assertEqual(lot_a.quantity_svl, 4)
+        self.assertEqual(lot_a.value_svl, 40)
+
+    def test_inter_company_received_qty_with_kit(self):
+        """
+        Test that the received quantity on a purchase order lines gets updated when purchasing a kit
+        through an inter-company transaction.
+        """
+        # Create the purchase order with a partner that uses the inter company location
+        inter_comp_location = self.env.ref('stock.stock_location_inter_company')
+        partner = self.env['res.partner'].create({'name': 'Testing Partner'})
+        partner.property_stock_customer = inter_comp_location
+        partner.property_stock_supplier = inter_comp_location
+        po = self.env['purchase.order'].create({
+            'partner_id': partner.id,
+            'order_line': [
+                (0, 0,
+                 {
+                     'name': self.kit_1.name,
+                     'product_id': self.kit_1.id,
+                     'product_qty': 1,
+                 })
+            ]
+        })
+        po.button_confirm()
+
+        self.assertTrue(po.picking_ids)
+        self.assertEqual(po.order_line.qty_received, 0)
+
+        picking = po.picking_ids
+        for move in picking.move_ids:
+            move.write({'quantity': move.product_uom_qty, 'picked': True})
+        picking.button_validate()
+
+        self.assertEqual(po.order_line.qty_received, 1)

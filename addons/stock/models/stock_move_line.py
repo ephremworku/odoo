@@ -270,7 +270,8 @@ class StockMoveLine(models.Model):
                     excluded_smls.discard(sml.id)
                     used_locations.add(sml.location_dest_id)
                 if len(used_locations) > 1:
-                    smls.location_dest_id = smls.move_id.location_dest_id
+                    for move, grouped_smls in smls.grouped('move_id').items():
+                        grouped_smls.location_dest_id = move.location_dest_id
                 else:
                     smls.package_level_id.location_dest_id = smls.location_dest_id
             else:
@@ -356,9 +357,11 @@ class StockMoveLine(models.Model):
 
         mls = super().create(vals_list)
 
+        created_moves = set()
         def create_move(move_line):
             new_move = self.env['stock.move'].create(move_line._prepare_stock_move_vals())
             move_line.move_id = new_move.id
+            created_moves.add(new_move.id)
 
         # If the move line is directly create on the picking view.
         # If this picking is already done we should generate an
@@ -392,13 +395,14 @@ class StockMoveLine(models.Model):
                 reservation = not move._should_bypass_reservation()
             else:
                 reservation = product.is_storable and not location.should_bypass_reservation()
-            if move_line.quantity and reservation:
+            if move_line.quantity_product_uom and reservation:
                 self.env.context.get('reserved_quant', self.env['stock.quant'])._update_reserved_quantity(
                     product, location, move_line.quantity_product_uom, lot_id=move_line.lot_id, package_id=move_line.package_id, owner_id=move_line.owner_id)
 
                 if move:
                     move_to_recompute_state.add(move.id)
         self.env['stock.move'].browse(move_to_recompute_state)._recompute_state()
+        self.env['stock.move'].browse(created_moves)._post_process_created_moves()
 
         for ml, vals in zip(mls, vals_list):
             if ml.state == 'done':
@@ -458,13 +462,13 @@ class StockMoveLine(models.Model):
                     # Only need to unlink the package level if it's empty. Otherwise will unlink it to still valid move lines.
                     if not package_level.move_line_ids:
                         package_level.unlink()
-        # When we try to write on a reserved move line any fields from `triggers` or directly
-        # `reserved_uom_qty` (the actual reserved quantity), we need to make sure the associated
+        # When we try to write on a reserved move line any fields from `triggers`, result_package_id excepted,
+        # or directly reserved_uom_qty` (the actual reserved quantity), we need to make sure the associated
         # quants are correctly updated in order to not make them out of sync (i.e. the sum of the
         # move lines `reserved_uom_qty` should always be equal to the sum of `reserved_quantity` on
         # the quants). If the new charateristics are not available on the quants, we chose to
         # reserve the maximum possible.
-        if updates or 'quantity' in vals:
+        if (updates and {'result_package_id'}.difference(updates.keys())) or 'quantity' in vals:
             for ml in self:
                 if not ml.product_id.is_storable or ml.state == 'done':
                     continue
@@ -724,10 +728,13 @@ class StockMoveLine(models.Model):
 
     def _prepare_new_lot_vals(self):
         self.ensure_one()
-        return {
+        vals =  {
             'name': self.lot_name,
             'product_id': self.product_id.id,
         }
+        if self.product_id.company_id and self.company_id in (self.product_id.company_id.all_child_ids | self.product_id.company_id):
+            vals['company_id'] = self.company_id.id
+        return vals
 
     def _create_and_assign_production_lot(self):
         """ Creates and assign new production lots for move lines."""
@@ -746,7 +753,7 @@ class StockMoveLine(models.Model):
         lots = self.env['stock.lot'].create(lot_vals)
         for key, mls in key_to_mls.items():
             lot = lots[key_to_index[key]].with_prefetch(lots._ids)   # With prefetch to reconstruct the ones broke by accessing by index
-            mls.write({'lot_id': lot.id})
+            mls.with_prefetch(self._prefetch_ids).write({'lot_id': lot.id})
 
     def _log_message(self, record, move, template, vals):
         data = vals.copy()
@@ -837,10 +844,12 @@ class StockMoveLine(models.Model):
         move = move or move_line.move_id
         uom = move.product_uom or move_line.product_uom_id
         name = move.product_id.display_name
-        description = move.description_picking
-        if description == name or description == move.product_id.name:
-            description = False
+        description = move.description_picking or ""
         product = move.product_id
+        if description.startswith(name):
+            description = description.removeprefix(name).strip()
+        elif description.startswith(product.name):
+            description = description.removeprefix(product.name).strip()
         line_key = f'{product.id}_{product.display_name}_{description or ""}_{uom.id}_{move.product_packaging_id or ""}'
         return {
             'line_key': line_key,
@@ -952,7 +961,7 @@ class StockMoveLine(models.Model):
             'product_id': self.product_id.id,
             'product_uom_qty': 0 if self.picking_id and self.picking_id.state != 'done' else self.quantity,
             'product_uom': self.product_uom_id.id,
-            'description_picking': self.description_picking,
+            'description_picking': self.description_picking or self.product_id.with_context(lang=self.env.context.get('lang'))._get_description(self.picking_type_id),
             'location_id': self.picking_id.location_id.id,
             'location_dest_id': self.picking_id.location_dest_id.id,
             'picked': self.picked,

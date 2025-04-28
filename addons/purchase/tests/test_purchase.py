@@ -448,7 +448,7 @@ class TestPurchase(AccountTestInvoicingCommon):
         purchase_order_coco = po_form.save()
         self.assertEqual(purchase_order_coco.order_line.price_unit, currency_rate.rate * product.standard_price, "Value shouldn't be rounded 🍫")
         self.assertEqual(purchase_order_coco.amount_total_cc, round(purchase_order_coco.amount_total / currency_rate.rate, 2), "Company Total should be 0.14$, since 1$ = 0.5🍫")
-
+        self.assertEqual(purchase_order_coco.tax_totals['amount_total_cc'], "($\xa00.14)")
         #check if the correct currency is set on the purchase order by comparing the expected price and actual price
 
         company_a = self.company_data['company']
@@ -492,6 +492,10 @@ class TestPurchase(AccountTestInvoicingCommon):
 
         self.assertEqual(order_b.order_line.price_unit, 10.0, 'The price unit should be 10.0')
         self.assertEqual(order_b.amount_total_cc, order_b.amount_total, 'Company Total should be 10.0$')
+
+        # since the order currency matches the company currency we don't want to redisplay the total amount
+        with self.assertRaises(KeyError):
+            order_b.tax_totals['amount_total_cc']
 
     def test_discount_and_price_update_on_quantity_change(self):
         """ Purchase order line price and discount should update accordingly based on quantity
@@ -902,3 +906,43 @@ class TestPurchase(AccountTestInvoicingCommon):
         self.assertEqual(po_1.user_id, user_1)
         self.assertEqual(po_1.payment_term_id, payment_term_id_1)
         self.assertEqual(po_1.incoterm_id, incoterm_id_1)
+
+    def test_vendor_price_by_purchase_order_company(self):
+        """
+        Test that in case a vendor has multiple price for two company A and B,
+        and the purchase_order.company_id != env.company_id
+        the price of chosen is the one of the company specified in the purchase order
+        """
+        company_a = self.env.company
+        company_b = self.env['res.company'].create({'name': 'Saucisson Inc.'})
+        self.env.company = company_a
+
+        self.product_a.write({
+            'seller_ids': [
+                Command.create({
+                    'partner_id': self.partner_a,
+                    'product_code': 'A',
+                    'company_id': company_a.id,
+                    'price': 10.0,
+                }),
+                Command.create({
+                    'partner_id': self.partner_a,
+                    'product_code': 'B',
+                    'company_id': company_b.id,
+                    'price': 15.0,
+                }),
+            ]
+        })
+
+        po = self.env['purchase.order'].with_context(allowed_company_ids=[company_a.id, company_b.id]).with_company(company_b).create({
+            'partner_id': self.partner_a.id,
+            'company_id': company_b.id,
+            'order_line': [Command.create({
+                'name': self.product_a.name,
+                'product_id': self.product_a.id,
+            })],
+        })
+
+        self.assertEqual(po.amount_untaxed, 15.0)
+        po.company_id = company_a.id
+        self.assertEqual(po.amount_untaxed, 10.0)

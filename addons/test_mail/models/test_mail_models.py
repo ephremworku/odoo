@@ -32,6 +32,15 @@ class MailTestSimple(models.Model):
         headers['X-Custom'] = 'Done'
         return headers
 
+class MailTestSimpleUnnamed(models.Model):
+    """ A very simple model only inheriting from mail.thread when only
+    communication history is necessary, and has no 'name' field """
+    _description = 'Simple Chatter Model without "name" field'
+    _name = 'mail.test.simple.unnamed'
+    _inherit = ['mail.thread']
+    _rec_name = "description"
+
+    description = fields.Char()
 
 class MailTestSimpleWithMainAttachment(models.Model):
     _description = 'Simple Chatter Model With Main Attachment Management'
@@ -372,6 +381,17 @@ class MailTestTicketMC(models.Model):
         if leftover:
             res.update(super(MailTestTicketMC, leftover)._notify_get_reply_to(default=default))
         return res
+
+    def _creation_subtype(self):
+        if self.container_id:
+            return self.env.ref('test_mail.st_mail_test_ticket_container_mc_upd')
+        return super()._creation_subtype()
+
+    def _track_subtype(self, init_values):
+        self.ensure_one()
+        if 'container_id' in init_values and self.container_id:
+            return self.env.ref('test_mail.st_mail_test_ticket_container_mc_upd')
+        return super()._track_subtype(init_values)
 
 
 class MailTestContainer(models.Model):

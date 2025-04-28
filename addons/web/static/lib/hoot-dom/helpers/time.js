@@ -4,6 +4,11 @@ import { HootDomError } from "../hoot_dom_utils";
 
 /**
  * @typedef {{
+ *  animationFrame?: boolean;
+ *  blockTimers?: boolean;
+ * }} AdvanceTimeOptions
+ *
+ * @typedef {{
  *  message?: string | () => string;
  *  timeout?: number;
  * }} WaitOptions
@@ -19,6 +24,7 @@ const {
     clearTimeout,
     Error,
     Math: { ceil: $ceil, floor: $floor, max: $max, min: $min },
+    Number,
     performance,
     Promise,
     requestAnimationFrame,
@@ -69,7 +75,14 @@ const idToTimeout = (id) => Number(id.slice(ID_PREFIX.timeout.length));
  */
 const intervalToId = (id) => ID_PREFIX.interval + String(id);
 
-const now = () => (freezed ? 0 : $performanceNow()) + timeOffset;
+/**
+ * Converts a given value to a **natural number** (or 0 if failing to do so).
+ *
+ * @param {unknown} value
+ */
+const parseNat = (value) => $max($floor(Number(value)), 0) || 0;
+
+const now = () => (frozen ? 0 : $performanceNow()) + timeOffset;
 
 /**
  * @param {number} id
@@ -86,7 +99,7 @@ const ID_PREFIX = {
 const timers = new Map();
 
 let allowTimers = false;
-let freezed = false;
+let frozen = false;
 let frameDelay = 1000 / 60;
 let nextDummyId = 1;
 let timeOffset = 0;
@@ -97,9 +110,10 @@ let timeOffset = 0;
 
 /**
  * @param {number} [frameCount]
+ * @param {AdvanceTimeOptions} [options]
  */
-export function advanceFrame(frameCount) {
-    return advanceTime(frameDelay * $max(1, frameCount));
+export function advanceFrame(frameCount, options) {
+    return advanceTime(frameDelay * parseNat(frameCount), options);
 }
 
 /**
@@ -109,9 +123,16 @@ export function advanceFrame(frameCount) {
  * It returns a promise resolved after all related callbacks have been executed.
  *
  * @param {number} ms
+ * @param {AdvanceTimeOptions} [options]
  * @returns {Promise<number>} time consumed by timers (in ms).
  */
-export function advanceTime(ms) {
+export async function advanceTime(ms, options) {
+    ms = parseNat(ms);
+
+    if (options?.blockTimers) {
+        allowTimers = false;
+    }
+
     const targetTime = now() + ms;
     let remaining = ms;
     /** @type {ReturnType<typeof getNextTimerValues>} */
@@ -132,8 +153,13 @@ export function advanceTime(ms) {
         timeOffset += remaining;
     }
 
-    // Waits for callbacks to execute
-    return animationFrame().then(() => ms);
+    if (options?.animationFrame ?? true) {
+        await animationFrame();
+    }
+
+    allowTimers = true;
+
+    return ms;
 }
 
 /**
@@ -161,14 +187,14 @@ export function cancelAllTimers() {
     }
 }
 
-export async function cleanupTime() {
+export function cleanupTime() {
     allowTimers = false;
-    freezed = false;
+    frozen = false;
 
     cancelAllTimers();
 
     // Wait for remaining async code to run
-    await delay();
+    return delay();
 }
 
 /**
@@ -187,15 +213,15 @@ export function delay(duration) {
  * @param {boolean} setFreeze
  */
 export function freezeTime(setFreeze) {
-    freezed = setFreeze ?? !freezed;
+    frozen = setFreeze ?? !frozen;
 }
 
 export function getTimeOffset() {
     return timeOffset;
 }
 
-export function isTimeFreezed() {
-    return freezed;
+export function isTimeFrozen() {
+    return frozen;
 }
 
 /**
@@ -209,7 +235,7 @@ export function microTick() {
 
 /** @type {typeof cancelAnimationFrame} */
 export function mockedCancelAnimationFrame(handle) {
-    if (!freezed) {
+    if (!frozen) {
         cancelAnimationFrame(handle);
     }
     timers.delete(animationToId(handle));
@@ -217,7 +243,7 @@ export function mockedCancelAnimationFrame(handle) {
 
 /** @type {typeof clearInterval} */
 export function mockedClearInterval(intervalId) {
-    if (!freezed) {
+    if (!frozen) {
         clearInterval(intervalId);
     }
     timers.delete(intervalToId(intervalId));
@@ -225,7 +251,7 @@ export function mockedClearInterval(intervalId) {
 
 /** @type {typeof clearTimeout} */
 export function mockedClearTimeout(timeoutId) {
-    if (!freezed) {
+    if (!frozen) {
         clearTimeout(timeoutId);
     }
     timers.delete(timeoutToId(timeoutId));
@@ -243,7 +269,7 @@ export function mockedRequestAnimationFrame(callback) {
     };
 
     const animationValues = [handler, now(), frameDelay];
-    const handle = freezed ? nextDummyId++ : requestAnimationFrame(handler);
+    const handle = frozen ? nextDummyId++ : requestAnimationFrame(handler);
     const internalId = animationToId(handle);
     timers.set(internalId, animationValues);
 
@@ -256,13 +282,11 @@ export function mockedSetInterval(callback, ms, ...args) {
         return 0;
     }
 
-    if (isNaN(ms) || !ms || ms < 0) {
-        ms = 0;
-    }
+    ms = parseNat(ms);
 
     const handler = () => {
         if (allowTimers) {
-            intervalValues[1] = Math.max(now(), intervalValues[1] + ms);
+            intervalValues[1] = $max(now(), intervalValues[1] + ms);
         } else {
             mockedClearInterval(intervalId);
         }
@@ -270,7 +294,7 @@ export function mockedSetInterval(callback, ms, ...args) {
     };
 
     const intervalValues = [handler, now(), ms];
-    const intervalId = freezed ? nextDummyId++ : setInterval(handler, ms);
+    const intervalId = frozen ? nextDummyId++ : setInterval(handler, ms);
     const internalId = intervalToId(intervalId);
     timers.set(internalId, intervalValues);
 
@@ -283,9 +307,7 @@ export function mockedSetTimeout(callback, ms, ...args) {
         return 0;
     }
 
-    if (isNaN(ms) || !ms || ms < 0) {
-        ms = 0;
-    }
+    ms = parseNat(ms);
 
     const handler = () => {
         mockedClearTimeout(timeoutId);
@@ -293,7 +315,7 @@ export function mockedSetTimeout(callback, ms, ...args) {
     };
 
     const timeoutValues = [handler, now(), ms];
-    const timeoutId = freezed ? nextDummyId++ : setTimeout(handler, ms);
+    const timeoutId = frozen ? nextDummyId++ : setTimeout(handler, ms);
     const internalId = timeoutToId(timeoutId);
     timers.set(internalId, timeoutValues);
 
@@ -309,17 +331,16 @@ export function resetTimeOffset() {
  * animations, and then advances the current time by that amount.
  *
  * @see {@link advanceTime}
+ * @param {AdvanceTimeOptions} [options]
  * @returns {Promise<number>} time consumed by timers (in ms).
  */
-export async function runAllTimers() {
+export function runAllTimers(options) {
     if (!timers.size) {
         return 0;
     }
 
     const endts = $max(...[...timers.values()].map(([, init, delay]) => init + delay));
-    const ms = await advanceTime($ceil(endts - now()));
-
-    return ms;
+    return advanceTime($ceil(endts - now()), options);
 }
 
 /**
@@ -328,7 +349,8 @@ export async function runAllTimers() {
  * @param {number} frameRate
  */
 export function setFrameRate(frameRate) {
-    if (!Number.isInteger(frameRate) || frameRate <= 0 || frameRate > 1000) {
+    frameRate = parseNat(frameRate);
+    if (frameRate < 1 || frameRate > 1000) {
         throw new Error("frame rate must be an number between 1 and 1000");
     }
     frameDelay = 1000 / frameRate;

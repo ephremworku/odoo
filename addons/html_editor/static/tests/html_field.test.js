@@ -16,7 +16,7 @@ import {
     queryAllTexts,
     queryOne,
     waitFor,
-    waitUntil,
+    waitForNone,
 } from "@odoo/hoot-dom";
 import { Deferred, animationFrame, mockSendBeacon, tick } from "@odoo/hoot-mock";
 import { onWillDestroy, xml } from "@odoo/owl";
@@ -40,6 +40,7 @@ import { FormController } from "@web/views/form/form_controller";
 import { Counter, EmbeddedWrapperMixin } from "./_helpers/embedded_component";
 import { moveSelectionOutsideEditor, setSelection } from "./_helpers/selection";
 import { insertText, pasteOdooEditorHtml, pasteText, undo } from "./_helpers/user_actions";
+import { unformat } from "./_helpers/format";
 
 class Partner extends models.Model {
     txt = fields.Html({ trim: true });
@@ -103,6 +104,11 @@ beforeEach(() => {
         onEditorLoad(editor) {
             htmlEditor = editor;
             return super.onEditorLoad(...arguments);
+        },
+        getConfig() {
+            const config = super.getConfig();
+            config.Plugins = config.Plugins.filter((Plugin) => Plugin.id !== "editorVersion");
+            return config;
         },
     });
 });
@@ -324,6 +330,54 @@ test("links should open on a new tab in readonly", async () => {
     }
 });
 
+test("XML-like self-closing elements are fixed in readonly mode", async () => {
+    Partner._records = [
+        {
+            id: 1,
+            txt: `<a href="#"/>outside<a href="#">inside</a>`,
+        },
+    ];
+    await mountView({
+        type: "form",
+        resId: 1,
+        resIds: [1, 2],
+        resModel: "partner",
+        arch: `
+            <form>
+                <field name="txt" widget="html" readonly="1"/>
+            </form>`,
+    });
+    expect(".odoo-editor-editable").toHaveCount(0);
+    expect(`[name="txt"] .o_readonly`).toHaveCount(1);
+    expect(`[name="txt"] .o_readonly`).toHaveInnerHTML(
+        `<a href="#" target="_blank" rel="noreferrer"></a>outside<a href="#" target="_blank" rel="noreferrer">inside</a>`
+    );
+});
+
+test("XML-like self-closing elements are fixed in editable mode", async () => {
+    Partner._records = [
+        {
+            id: 1,
+            txt: `<a href="#"/>outside<a href="#">inside</a>`,
+        },
+    ];
+    await mountView({
+        type: "form",
+        resId: 1,
+        resIds: [1, 2],
+        resModel: "partner",
+        arch: `
+            <form>
+                <field name="txt" widget="html"/>
+            </form>`,
+    });
+    expect(".odoo-editor-editable").toHaveCount(1);
+    expect(`[name="txt"] .o_readonly`).toHaveCount(0);
+    expect(`[name="txt"] .odoo-editor-editable`).toHaveInnerHTML(
+        `<div class="o-paragraph">outside<a href="#">inside</a></div>`
+    );
+});
+
 test("edit and save a html field", async () => {
     onRpc("web_save", ({ args }) => {
         expect(args[1]).toEqual({
@@ -405,13 +459,13 @@ test("edit a html field in new form view dialog and close the dialog with 'escap
             </form>`,
     });
     expect(".modal").toHaveCount(1);
-    expect(".odoo-editor-editable p").toHaveText("");
+    expect(".odoo-editor-editable div.o-paragraph").toHaveText("");
 
     await contains("[name='txt'] .odoo-editor-editable").focus();
-    setSelectionInHtmlField();
+    setSelectionInHtmlField("div.o-paragraph");
     await insertText(htmlEditor, "test");
     await animationFrame();
-    expect(".odoo-editor-editable p").toHaveText("test");
+    expect(".odoo-editor-editable div.o-paragraph").toHaveText("test");
     expect(".o_form_button_save").toBeVisible();
 
     await press("escape");
@@ -509,6 +563,60 @@ test("create new record and load it correctly", async () => {
     await contains(".ui-menu-item:contains(second), .o_kanban_record:contains(second)").click();
     await animationFrame();
     expect(".odoo-editor-editable").toHaveInnerHTML("<p>2</p>");
+});
+
+test("edit a html field with `o-contenteditable-true` or `o-contenteditable-false` in its content should not reset the editable value when saving", async () => {
+    patchWithCleanup(HtmlField.prototype, {
+        updateValue() {
+            expect.step("update_value");
+            super.updateValue(...arguments);
+        },
+    });
+    patchWithCleanup(Wysiwyg.prototype, {
+        setup() {
+            super.setup();
+            // This should not be called again after the edit (if it is, it
+            // means that the content was reset from the server value, and that
+            // an entirely new editor replaced the previous one).
+            expect.step("setup_wysiwyg");
+        },
+    });
+    const getTxtValue = (innerContent, withContentEditable = false) =>
+        `<div class="o-contenteditable-false"${
+            withContentEditable ? ' contenteditable="false"' : ""
+        }>outside<div class="o-contenteditable-true"${
+            withContentEditable ? ' contenteditable="true"' : ""
+        }><p>${innerContent}</p></div></div>`;
+    Partner._records = [
+        {
+            id: 1,
+            txt: getTxtValue("inside"),
+        },
+    ];
+    onRpc("partner", "web_save", ({ args }) => {
+        expect.step("web_save");
+        // server representation removes `contenteditable` attribute
+        let txt = args[1].txt;
+        txt = txt.replace(` contenteditable="true"`, "");
+        txt = txt.replace(` contenteditable="false"`, "");
+        return [{ id: 1, txt }];
+    });
+    await mountView({
+        type: "form",
+        resId: 1,
+        resModel: "partner",
+        arch: `
+            <form>
+                <field name="txt" widget="html"/>
+            </form>`,
+    });
+    expect.verifySteps(["setup_wysiwyg"]);
+    expect(`[name="txt"] .odoo-editor-editable`).toHaveInnerHTML(getTxtValue("inside", true));
+    setSelectionInHtmlField();
+    pasteOdooEditorHtml(htmlEditor, "addon");
+    expect(`[name="txt"] .odoo-editor-editable`).toHaveInnerHTML(getTxtValue("addoninside", true));
+    await clickSave();
+    expect.verifySteps(["update_value", "web_save"]);
 });
 
 test.tags("focus required");
@@ -853,7 +961,7 @@ test("link preview in Link Popover", async () => {
     });
     // Move selection outside to discard
     setSelectionInHtmlField(".test_target");
-    await waitUntil(() => !document.querySelector(".o-we-linkpopover"), { timeout: 500 });
+    await waitForNone(".o-we-linkpopover", { root: document, timeout: 500 });
     expect(".o-we-linkpopover").toHaveCount(0);
     expect(".test_target a").toHaveText("This website");
 
@@ -900,21 +1008,21 @@ test("html field with a placeholder", async () => {
     });
 
     expect(`[name="txt"] .odoo-editor-editable`).toHaveInnerHTML(
-        '<p placeholder="test" class="o-we-hint"><br></p>',
+        '<div class="o-paragraph o-we-hint" placeholder="test"><br></div>',
         { type: "html" }
     );
 
-    setSelectionInHtmlField();
+    setSelectionInHtmlField("div.o-paragraph");
     await tick();
     expect(`[name="txt"] .odoo-editor-editable`).toHaveInnerHTML(
-        '<p placeholder="Type &quot;/&quot; for commands" class="o-we-hint"><br></p>',
+        '<div class="o-paragraph o-we-hint" placeholder="Type &quot;/&quot; for commands"><br></div>',
         { type: "html" }
     );
 
     moveSelectionOutsideEditor();
     await tick();
     expect(`[name="txt"] .odoo-editor-editable`).toHaveInnerHTML(
-        '<p placeholder="test" class="o-we-hint"><br></p>',
+        '<div class="o-paragraph o-we-hint" placeholder="test"><br></div>',
         { type: "html" }
     );
 });
@@ -1324,7 +1432,7 @@ describe("sandbox", () => {
     });
 
     function htmlDocumentTextTemplate(text, color) {
-        return `
+        return unformat(`
         <html>
             <head>
                 <style>
@@ -1337,7 +1445,7 @@ describe("sandbox", () => {
                 ${text}
             </body>
         </html>
-        `;
+        `);
     }
 
     test("sandboxed preview display and editing", async () => {

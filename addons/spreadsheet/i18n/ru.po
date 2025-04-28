@@ -7,15 +7,16 @@
 # Сергей Шебанин <sergey@shebanin.ru>, 2024
 # Ivan Kropotkin <yelizariev@itpp.dev>, 2024
 # Nadia Martynova, 2024
-# Wil Odoo, 2024
+# Wil Odoo, 2025
+# Ilya Rozhkov, 2025
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-25 07:49+0000\n"
+"POT-Creation-Date: 2025-03-19 20:37+0000\n"
 "PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Wil Odoo, 2024\n"
+"Last-Translator: Ilya Rozhkov, 2025\n"
 "Language-Team: Russian (https://app.transifex.com/odoo/teams/41243/ru/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -91,7 +92,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "%(hour_number)sh"
-msgstr ""
+msgstr "%(hour_number)sч"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -889,12 +890,6 @@ msgstr ""
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid "All the ranges and the range values must have the same size"
-msgstr ""
-
-#. module: spreadsheet
-#. odoo-javascript
-#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "All the ranges must have the same dimensions."
 msgstr "Все диапазоны должны иметь одинаковые размеры."
 
@@ -1648,6 +1643,12 @@ msgstr "Невозможно сделать специальную вставк�
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Cannot duplicate a pivot in error."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "Cannot find workbook relations file"
 msgstr "Невозможно найти файл отношений рабочей книги"
 
@@ -2154,6 +2155,12 @@ msgstr "Преобразует указанную строку в строчны
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "Converts a specified string to uppercase."
 msgstr "Преобразует указанную строку в верхний регистр."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "Converts a string to a numeric value."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -2893,7 +2900,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "Discard all changes"
-msgstr ""
+msgstr "Отменить все изменения"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -3279,12 +3286,13 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "Field %(field)s is not supported because of its type (%(type)s)"
-msgstr ""
+msgstr "Поле %(field)s не поддерживается из-за его типа (%(type)s)"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/pivot/odoo_pivot.js:0
 #: code:addons/spreadsheet/static/src/pivot/pivot_helpers.js:0
+#: code:addons/spreadsheet/static/src/pivot/pivot_model.js:0
 msgid "Field %s does not exist"
 msgstr "Поле %s не существует"
 
@@ -5631,7 +5639,7 @@ msgstr "Круговая"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "Pivot #%(formulaId)s"
-msgstr ""
+msgstr "Сводная таблица #%(formulaId)s"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -5649,7 +5657,7 @@ msgstr ""
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
-msgid "Pivot duplication failed"
+msgid "Pivot duplication failed."
 msgstr ""
 
 #. module: spreadsheet
@@ -6256,7 +6264,7 @@ msgstr "Округляет число по стандартным правила
 msgid ""
 "Rounds a number down to the nearest integer that is less than or equal to "
 "it."
-msgstr ""
+msgstr "Округляет число вниз до ближайшего целого, не превышающего его."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -6612,6 +6620,12 @@ msgstr "Единый цвет"
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "Single value from a table-like range."
 msgstr "Одиночное значение из диапазона в виде таблицы."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/pivot/pivot_model.js:0
+msgid "Some measures are not available: %s"
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -7338,6 +7352,24 @@ msgstr "Основание (%s) должно быть от 2 до 36 включ�
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The base (%s) must be strictly positive."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The base must be different from 1."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The base of the logarithm."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "The base to convert the value from."
 msgstr "База для преобразования значения."
 
@@ -7897,6 +7929,8 @@ msgid ""
 "The field (%(fieldValue)s) must be one of %(dimRowDB)s or must be a number "
 "between 1 and %s inclusive."
 msgstr ""
+"Поле (%(fieldValue)s) должно быть одним из %(dimRowDB)s или должно быть "
+"числом от 1 до %s включительно."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -8383,6 +8417,12 @@ msgstr "Логарифм числа с основанием e (число Эйл
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The logarithm of a number, for a given base."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "The low end of the random range."
 msgstr "Низкая граница случайного диапазона."
 
@@ -8520,6 +8560,21 @@ msgstr "Минимальное значение или число, из кото
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "The minute component of the time."
 msgstr "Минутная составляющая времени."
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/data_sources/data_source.js:0
+#: code:addons/spreadsheet/static/src/pivot/odoo_pivot_loader.js:0
+msgid "The model \"%(model)s\" does not exist."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/global_filters/components/filter_value/filter_value.js:0
+msgid ""
+"The model (%(model)s) of this global filter is not valid (it may have been "
+"renamed/deleted)."
+msgstr ""
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -8881,7 +8936,7 @@ msgstr "Номер, который нужно вернуть."
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "The number to round down to the nearest integer."
-msgstr ""
+msgstr "Число, которое нужно округлить вниз до ближайшего целого."
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -10075,6 +10130,12 @@ msgstr "Значение, для которого вычисляется лог�
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "The value for which to calculate the logarithm."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
 msgid "The value must be %s"
 msgstr "Значение должно быть %s"
 
@@ -10846,7 +10907,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/pivot/pivot_model.js:0
 msgid "Unable to fetch the label of %(id)s of model %(model)s"
-msgstr ""
+msgstr "Невозможно получить метку %(id)s из модели %(model)s"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11719,7 +11780,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "difference"
-msgstr ""
+msgstr "разность"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11755,7 +11816,7 @@ msgstr ""
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/global_filters/components/filter_date_value/filter_date_value.xml:0
 msgid "empty"
-msgstr ""
+msgstr "пусто"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11779,19 +11840,19 @@ msgstr "ложь"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "formula"
-msgstr ""
+msgstr "формула"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "ge"
-msgstr ""
+msgstr ">="
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "gt"
-msgstr ""
+msgstr ">"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11863,7 +11924,7 @@ msgstr "нет"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "number"
-msgstr ""
+msgstr "номер"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11899,19 +11960,19 @@ msgstr "год назад"
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "percentage"
-msgstr ""
+msgstr "процент"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "percentile"
-msgstr ""
+msgstr "перцентиль"
 
 #. module: spreadsheet
 #. odoo-javascript
 #: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.xml:0
 msgid "plainText"
-msgstr ""
+msgstr "plainText"
 
 #. module: spreadsheet
 #. odoo-javascript
@@ -11993,6 +12054,12 @@ msgstr ""
 msgid ""
 "the search and match mode combination is not supported for XLOOKUP "
 "evaluation."
+msgstr ""
+
+#. module: spreadsheet
+#. odoo-javascript
+#: code:addons/spreadsheet/static/src/o_spreadsheet/o_spreadsheet.js:0
+msgid "the string to be converted"
 msgstr ""
 
 #. module: spreadsheet

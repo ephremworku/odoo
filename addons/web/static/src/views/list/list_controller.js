@@ -158,6 +158,9 @@ export class ListController extends Component {
         });
 
         usePager(() => {
+            if (this.model.useSampleModel) {
+                return;
+            }
             const { count, hasLimitedCount, isGrouped, limit, offset } = this.model.root;
             return {
                 offset: offset,
@@ -529,7 +532,7 @@ export class ListController extends Component {
     }
 
     async getExportedFields(model, import_compat, parentParams) {
-        let domain = this.model.root.domain;
+        let domain = parentParams ? [] : this.model.root.domain;
         if (!this.isDomainSelected) {
             const resIds = await this.getSelectedResIds();
             const ids = resIds.length > 0 && resIds;

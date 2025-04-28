@@ -3,17 +3,17 @@
 # 	* hr
 # 
 # Translators:
-# Wil Odoo, 2024
-# Erwin van der Ploeg <erwin@odooexperts.nl>, 2024
-# Manon Rondou, 2024
+# Erwin van der Ploeg <erwin@odooexperts.nl>, 2025
+# Wil Odoo, 2025
+# Manon Rondou, 2025
 # 
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-25 08:39+0000\n"
+"POT-Creation-Date: 2025-03-19 20:36+0000\n"
 "PO-Revision-Date: 2024-09-25 09:41+0000\n"
-"Last-Translator: Manon Rondou, 2024\n"
+"Last-Translator: Manon Rondou, 2025\n"
 "Language-Team: Dutch (https://app.transifex.com/odoo/teams/41243/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -70,11 +70,6 @@ msgstr "1 telefoontje"
 #: model_terms:hr.job,website_description:hr.job_trainee
 msgid "12 days / year, including <br>6 of your choice."
 msgstr "12 dagen per jaar, waarvan <br>6 naar keuze."
-
-#. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.print_employee_badge
-msgid "12345678901"
-msgstr "12345678901"
 
 #. module: hr
 #: model_terms:hr.job,job_details:hr.job_ceo
@@ -577,6 +572,11 @@ msgid "Available"
 msgstr "Beschikbaar"
 
 #. module: hr
+#: model_terms:ir.ui.view,arch_db:hr.mail_activity_plan_view_form
+msgid "Available for all Departments"
+msgstr "Beschikbaar voor alle afdelingen"
+
+#. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__avatar_1920
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__avatar_1920
 msgid "Avatar"
@@ -637,6 +637,11 @@ msgstr "Badge ID"
 #: model:ir.model.fields,field_description:hr.field_hr_employee__bank_account_id
 msgid "Bank Account"
 msgstr "Bankrekening"
+
+#. module: hr
+#: model:ir.model,name:hr.model_res_partner_bank
+msgid "Bank Accounts"
+msgstr "Bankrekeningen"
 
 #. module: hr
 #: model:ir.model,name:hr.model_base
@@ -828,7 +833,7 @@ msgstr "Volledige naam"
 #. module: hr
 #: model:ir.model,name:hr.model_res_config_settings
 msgid "Config Settings"
-msgstr "Configuratie instellingen"
+msgstr "Configuratie-instellingen"
 
 #. module: hr
 #: model:ir.ui.menu,name:hr.menu_human_resources_configuration
@@ -1333,7 +1338,7 @@ msgstr "Eigenschappen werknemer"
 #: model:ir.model.fields,field_description:hr.field_res_users__category_ids
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_category_form
 msgid "Employee Tags"
-msgstr "Werknemerlabels"
+msgstr "Werknemertags"
 
 #. module: hr
 #. odoo-javascript
@@ -1350,7 +1355,7 @@ msgstr "Werknemerstype"
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.res_config_settings_view_form
 msgid "Employee Update Rights"
-msgstr "Werknemer update rechten"
+msgstr "Werknemersrechten om bij te werken"
 
 #. module: hr
 #: model:ir.model.fields,help:hr.field_hr_employee__bank_account_id
@@ -1415,7 +1420,7 @@ msgstr "Aantal werknemers"
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_category_list
 msgid "Employees Tags"
-msgstr "Werknemerlabels"
+msgstr "Werknemertags"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_job__contract_type_id
@@ -1511,7 +1516,7 @@ msgstr "Volgers"
 #: model:ir.model.fields,field_description:hr.field_hr_employee__message_partner_ids
 #: model:ir.model.fields,field_description:hr.field_hr_job__message_partner_ids
 msgid "Followers (Partners)"
-msgstr "Volgers (Contacten)"
+msgstr "Volgers (Partners)"
 
 #. module: hr
 #: model:ir.model.fields,help:hr.field_hr_department__activity_type_icon
@@ -1785,8 +1790,8 @@ msgstr ""
 #: model:ir.model.fields,help:hr.field_hr_employee__private_car_plate
 msgid "If you have more than one car, just separate the plates by a space."
 msgstr ""
-"Als je meer dan een wagen hebt, scheid gewoon de platen door middel van een "
-"spatie."
+"Als je meer dan een wagen hebt, scheid gewoon de kentekenplaten door middel "
+"van een spatie."
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__image_1920
@@ -2073,11 +2078,6 @@ msgstr "Manager"
 #: code:addons/hr/models/mail_activity_plan_template.py:0
 msgid "Manager of employee %s is not set."
 msgstr "Manager van werknemer %s is niet ingesteld."
-
-#. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.print_employee_badge
-msgid "Marc Demo"
-msgstr "Marc Demo"
 
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__marital
@@ -2474,7 +2474,7 @@ msgstr "Bovenliggend pad"
 #: model:ir.model.fields,help:hr.field_hr_employee__user_partner_id
 #: model:ir.model.fields,help:hr.field_hr_employee_public__user_partner_id
 msgid "Partner-related data of the user"
-msgstr "Contact gerelateerde gegevens van de gebruiker"
+msgstr "Partnergerelateerde gegevens van de gebruiker"
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_ceo
@@ -2616,7 +2616,7 @@ msgid ""
 msgstr ""
 "Beleid om een bericht te versturen bij een document door gebruik te maken van de mail gateway.\n"
 "-iedereen: iedereen mag posten\n"
-"-contacten: alleen geautoriseerde contacten\n"
+"-partners: alleen geautoriseerde partners\n"
 "-volgers: alleen volgers van een bijbehorend document of leden van gevolgde kanalen\n"
 
 #. module: hr
@@ -2778,7 +2778,7 @@ msgstr "Beoordelingen"
 #. module: hr
 #: model_terms:ir.actions.act_window,help:hr.action_hr_job
 msgid "Ready to recruit more efficiently?"
-msgstr "Klaar om efficiënter te recruiten?"
+msgstr "Klaar om efficiënter te werven?"
 
 #. module: hr
 #: model_terms:hr.job,website_description:hr.job_ceo
@@ -2831,7 +2831,7 @@ msgstr "Gerelateerde werknemers"
 #. module: hr
 #: model:ir.model.fields,field_description:hr.field_hr_employee__related_partners_count
 msgid "Related Partners Count"
-msgstr "Aantal verwante contacten"
+msgstr "Aantal verwante partners"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.view_employee_form
@@ -2892,6 +2892,11 @@ msgstr "Resource"
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__resource_calendar_id
 msgid "Resource Calendar"
 msgstr "Resource agenda"
+
+#. module: hr
+#: model:ir.model,name:hr.model_resource_calendar
+msgid "Resource Working Time"
+msgstr "Resource werktijd"
 
 #. module: hr
 #: model:ir.model,name:hr.model_resource_resource
@@ -3038,11 +3043,6 @@ msgstr "BSN nummer"
 #: model:ir.model.fields,help:hr.field_res_users__ssnid
 msgid "Social Security Number"
 msgstr "BSN nummer"
-
-#. module: hr
-#: model_terms:ir.ui.view,arch_db:hr.print_employee_badge
-msgid "Software Developer"
-msgstr "Software Developer"
 
 #. module: hr
 #. odoo-python
@@ -3233,7 +3233,7 @@ msgid ""
 "              This mission requires strong collaboration with Technical Service and Sales."
 msgstr ""
 "De Marketing Manager bepaalt de marketingstrategie op middellange tot lange termijn voor de marktsegmenten in de wereld die hij behandelt. \n"
-"Hij onwikkelt en controleert het jaarlijkse budget in samenwerking van de verkoopafdeling. \n"
+"Hij ontwikkelt en controleert het jaarlijkse budget in samenwerking met de verkoopafdeling. \n"
 "Hij bepaalt de producten- en klantenportefeuille in overeenstemming met het marketingplan. \n"
 "Deze missie vereist een sterke samenwerking met de Technische dienst en de verkoopafdeling."
 
@@ -3439,7 +3439,7 @@ msgstr "Ongelezen berichten"
 #. module: hr
 #: model_terms:ir.actions.act_window,help:hr.open_view_categ_form
 msgid "Use tags to categorize your Employees."
-msgstr "Gebruik labels om je werknemers te categoriseren."
+msgstr "Gebruik tags om je werknemers te categoriseren."
 
 #. module: hr
 #: model:ir.model,name:hr.model_res_users
@@ -3454,7 +3454,7 @@ msgstr "Gebruiker"
 #: model:ir.model.fields,field_description:hr.field_hr_employee__user_partner_id
 #: model:ir.model.fields,field_description:hr.field_hr_employee_public__user_partner_id
 msgid "User's partner"
-msgstr "Contact van de gebruiker"
+msgstr "Partner van de gebruiker"
 
 #. module: hr
 #: model_terms:ir.ui.view,arch_db:hr.hr_job_view_kanban
@@ -3770,7 +3770,7 @@ msgid ""
 "\n"
 "The job is located in Grand-Rosière (1367), Belgium (between Louvain-La-Neuve and Namur)."
 msgstr ""
-"Je neemt deel aan de consultancydiensten die we aan onze contacten en klanten verstrekken: design, analyse, ontwikkeling, testen, projectbeheer, support/coaching. Je werkt zelfstandig en je coordineert en superviseert kleine gedistribueerde ontwikkelteams voor bepaalde projecten. Desgewenst geef je Odoo-trainingssessies aan contacten en klanten (8-10 personen/sessie). Je rapporteert aan de Head of Professional Services en je werkt samen met alle ontwikkelaars en consultants. \n"
+"Je neemt deel aan de consultancydiensten die we aan onze partners en klanten verstrekken: design, analyse, ontwikkeling, testen, projectbeheer, support/coaching. Je werkt zelfstandig en je coordineert en superviseert kleine gedistribueerde ontwikkelteams voor bepaalde projecten. Desgewenst geef je Odoo-trainingssessies aan partners en klanten (8-10 personen/sessie). Je rapporteert aan de Head of Professional Services en je werkt samen met alle ontwikkelaars en consultants. \n"
 "\n"
 "De functie bevindt zich in Grand-Rosière (1367), België (tussen Louvain-la-Neuve en Namur)."
 

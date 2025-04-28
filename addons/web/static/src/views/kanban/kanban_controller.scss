@@ -163,6 +163,10 @@
         word-wrap: break-word;
         word-break: break-word;
 
+        &:first-of-type {
+            margin-top: 1px;
+        }
+
         // do not break wrap inside buttons
         button {
             word-wrap: normal;
@@ -195,6 +199,7 @@
             display: flex;
             flex-flow: column;
             min-width: 0;
+            height: 100%;
         }
 
         > footer, > main > footer {
@@ -237,7 +242,6 @@
 
         .o_dropdown_kanban {
             visibility: hidden;
-            z-index: 1;
 
             @include media-breakpoint-down(md) {
                 visibility: visible;

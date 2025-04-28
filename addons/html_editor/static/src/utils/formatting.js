@@ -94,7 +94,10 @@ export const formatsSpecs = {
         isFormatted: (node) =>
             FONT_SIZE_CLASSES.find((cls) => closestElement(node)?.classList?.contains(cls)),
         hasStyle: (node, props) => FONT_SIZE_CLASSES.find((cls) => node.classList.contains(cls)),
-        addStyle: (node, props) => node.classList.add(props.className),
+        addStyle: (node, props) => {
+            node.style.removeProperty("font-size");
+            node.classList.add(props.className);
+        },
         removeStyle: (node) => removeClass(node, ...FONT_SIZE_CLASSES, ...TEXT_STYLE_CLASSES),
     },
     switchDirection: {
@@ -191,7 +194,13 @@ export function getHtmlStyle(document) {
  */
 export function getFontSizeDisplayValue(sel, document) {
     const tagNameRelatedToFontSize = ["h1", "h2", "h3", "h4", "h5", "h6"];
-    const styleClassesRelatedToFontSize = ["display-1", "display-2", "display-3", "display-4"];
+    const styleClassesRelatedToFontSize = [
+        "display-1",
+        "display-2",
+        "display-3",
+        "display-4",
+        "lead",
+    ];
     const closestStartContainerEl = closestElement(sel.startContainer);
     const closestFontSizedEl = closestStartContainerEl.closest(`
         [style*='font-size'],
@@ -229,10 +238,6 @@ export function getFontSizeDisplayValue(sel, document) {
         }
         remValue = parseFloat(getCSSVariableValue(`${fsName}-font-size`, htmlStyle));
     }
-    // It's default font size (no font size class / style).
-    if (remValue === undefined) {
-        remValue = parseFloat(getCSSVariableValue("font-size-base", htmlStyle));
-    }
-    const pxValue = convertNumericToUnit(remValue, "rem", "px", htmlStyle);
+    const pxValue = remValue && convertNumericToUnit(remValue, "rem", "px", htmlStyle);
     return pxValue || parseFloat(getComputedStyle(closestStartContainerEl).fontSize);
 }

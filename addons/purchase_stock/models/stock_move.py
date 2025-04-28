@@ -55,15 +55,17 @@ class StockMove(models.Model):
             invoiced_layer = line.sudo().invoice_lines.stock_valuation_layer_ids
             # value on valuation layer is in company's currency, while value on invoice line is in order's currency
             receipt_value = 0
-            if move_layer:
-                receipt_value += sum(move_layer.mapped(lambda l: l.currency_id._convert(
-                    l.value, order.currency_id, order.company_id, l.create_date, round=False)))
+            for layer in move_layer:
+                if not layer._should_impact_price_unit_receipt_value():
+                    continue
+                receipt_value += layer.currency_id._convert(
+                    layer.value, order.currency_id, order.company_id, layer.create_date, round=False)
             if invoiced_layer:
                 receipt_value += sum(invoiced_layer.mapped(lambda l: l.currency_id._convert(
                     l.value, order.currency_id, order.company_id, l.create_date, round=False)))
             total_invoiced_value = 0
             invoiced_qty = 0
-            for invoice_line in line._get_po_line_invoice_lines_su():
+            for invoice_line in line.sudo().invoice_lines:
                 if invoice_line.move_id.state != 'posted':
                     continue
                 # Adjust unit price to account for discounts before adding taxes.
@@ -172,7 +174,8 @@ class StockMove(models.Model):
         different from the purchased one, we need to empty the stock_in account
         with the difference
         """
-        am_vals_list = super()._account_entry_move(qty, description, svl_id, cost)
+        move_directions = self.env.context.get('move_directions') or False
+        am_vals_list = super(StockMove, self.with_context(move_directions=move_directions))._account_entry_move(qty, description, svl_id, cost)
         returned_move = self.origin_returned_move_id
         move = (self | returned_move).with_prefetch(self._prefetch_ids)
         pdiff_exists = bool(move.stock_valuation_layer_ids.stock_valuation_layer_ids.account_move_line_id)
@@ -182,7 +185,13 @@ class StockMove(models.Model):
 
         layer = self.env['stock.valuation.layer'].browse(svl_id)
 
-        if returned_move and self._is_out() and self._is_returned(valued_type='out'):
+        self_is_out_move = False
+        if move_directions:
+            self_is_out_move = move_directions.get(self.id) and 'out' in move_directions.get(self.id)
+        else:
+            self_is_out_move = self._is_out()
+
+        if returned_move and self_is_out_move and self._is_returned(valued_type='out'):
             returned_layer = returned_move.stock_valuation_layer_ids.filtered(lambda svl: not svl.stock_valuation_layer_id)[:1]
             unit_diff = layer._get_layer_price_unit() - returned_layer._get_layer_price_unit() if returned_layer else 0
         elif returned_move and returned_move._is_out() and returned_move._is_returned(valued_type='out'):

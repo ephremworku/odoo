@@ -685,6 +685,80 @@ describe(parseUrl(import.meta.url), () => {
         ]);
     });
 
+    test("drag & drop: draggable items with files", async () => {
+        await mountForTest(/* xml */ `
+            <ul>
+                <li id="first-item" draggable="true">Item 1</li>
+                <li id="second-item" draggable="true">Item 2</li>
+                <li id="third-item" draggable="true">Item 3</li>
+            </ul>
+        `);
+
+        const { drop, moveTo } = await drag("#first-item", {
+            dropEffect: "move",
+            files: [new File([""], "dragged-file.txt")],
+        });
+        await moveTo("#second-item");
+        const events = await drop("#third-item");
+
+        const dragEvents = events.getAll((ev) => ev.type.startsWith("drag"));
+        const { dataTransfer } = dragEvents[0];
+
+        expect(dataTransfer.dropEffect).toBe("move");
+        expect(dataTransfer.effectAllowed).toBe("all");
+        expect(dataTransfer.files).toHaveLength(1);
+        expect(dataTransfer.items).toHaveLength(1);
+        expect(dataTransfer.types).toEqual(["Files"]);
+
+        for (const event of dragEvents) {
+            expect(event.dataTransfer).toBe(dataTransfer, {
+                message: (_, r) => [
+                    r`drag event`,
+                    event.type,
+                    r`should share the same dataTransfer object`,
+                ],
+            });
+        }
+    });
+
+    test("drag & drop: draggable items with dataTransfer items", async () => {
+        await mountForTest(/* xml */ `
+            <ul>
+                <li id="first-item" draggable="true">Item 1</li>
+                <li id="second-item" draggable="true">Item 2</li>
+                <li id="third-item" draggable="true">Item 3</li>
+            </ul>
+        `);
+
+        const { drop, moveTo } = await drag("#first-item", {
+            items: [
+                ["abc", "text/plain"],
+                ["<html/>", "text/html"],
+            ],
+        });
+        await moveTo("#second-item");
+        const events = await drop("#third-item");
+
+        const dragEvents = events.getAll((ev) => ev.type.startsWith("drag"));
+        const { dataTransfer } = dragEvents[0];
+
+        expect(dataTransfer.dropEffect).toBe("none");
+        expect(dataTransfer.effectAllowed).toBe("all");
+        expect(dataTransfer.files).toHaveLength(0);
+        expect(dataTransfer.items).toHaveLength(2);
+        expect(dataTransfer.types).toEqual(["text/plain", "text/html"]);
+
+        for (const event of dragEvents) {
+            expect(event.dataTransfer).toBe(dataTransfer, {
+                message: (_, r) => [
+                    r`drag event`,
+                    event.type,
+                    r`should share the same dataTransfer object`,
+                ],
+            });
+        }
+    });
+
     test("drag & drop: non-draggable items", async () => {
         await mountForTest(/* xml */ `
             <ul>
@@ -1100,8 +1174,8 @@ describe(parseUrl(import.meta.url), () => {
             "mouseleave:0@input",
             // Change
             "blur@input",
-            "focusout@input",
             "change@input",
+            "focusout@input",
         ]);
     });
 
@@ -1135,8 +1209,63 @@ describe(parseUrl(import.meta.url), () => {
                 `input:${char}@input`,
                 `keyup:${char}@input`,
             ]),
-            "select@input",
         ]);
+    });
+
+    test("edit with dirty value and blur", async () => {
+        await mountForTest(/* xml */ `
+            <input type="text" />
+            <button>Diversion</button>
+        `);
+        await click("input");
+        await edit("test value");
+
+        monitorEvents("input");
+        monitorEvents("button");
+
+        await click("button");
+
+        expect.verifySteps([
+            // Move to button
+            "pointermove:0@input",
+            "mousemove:0@input",
+            "pointerout:0@input",
+            "mouseout:0@input",
+            "pointerleave:0@input",
+            "mouseleave:0@input",
+            "pointerover:0@button",
+            "mouseover:0@button",
+            "pointerenter:0@button",
+            "mouseenter:0@button",
+            "pointermove:0@button",
+            "mousemove:0@button",
+            // Click on button
+            "pointerdown:0(1)@button",
+            "mousedown:0(1)@button",
+            "change@input",
+            "blur@input",
+            "focusout@input",
+            "focus@button",
+            "focusin@button",
+            "pointerup:0@button",
+            "mouseup:0@button",
+            "click:0@button",
+        ]);
+    });
+
+    test("edit with dirty value and confirm with enter", async () => {
+        await mountForTest(/* xml */ `
+            <input type="text" />
+            <button>Diversion</button>
+        `);
+        await click("input");
+        await edit("test value");
+
+        monitorEvents("input");
+
+        await press("Enter");
+
+        expect.verifySteps(["keydown:Enter@input", "change@input", "keyup:Enter@input"]);
     });
 
     test("edit: iframe", async () => {
@@ -1551,8 +1680,6 @@ describe(parseUrl(import.meta.url), () => {
             "focus@input",
             "focusin@input",
             "focusin@form",
-            "select@input",
-            "select@form",
             // Enter
             "keydown:Enter@input",
             "keydown:Enter@form",

@@ -103,7 +103,9 @@ class ResCurrency(models.Model):
         domestic_currency_companies = companies.filtered(lambda x: x.currency_id == main_company.currency_id)
         other_companies = companies - domestic_currency_companies
 
-        table_builders = [self._get_table_builder_domestic_currency(domestic_currency_companies, use_cta_rates)]
+        table_builders = []
+        if domestic_currency_companies:
+            table_builders += [self._get_table_builder_domestic_currency(domestic_currency_companies, use_cta_rates)]
 
         last_date_to = None
         for period_key, date_from, date_to in date_periods:
@@ -216,7 +218,7 @@ class ResCurrency(models.Model):
             """,
             period_key=period_key,
             main_company_id=main_company.root_id.id,
-            fiscal_year_bounds_values=SQL(",").join(SQL("(%(fy_from)s,%(fy_to)s)", fy_from=fy_from, fy_to=fy_to) for fy_from, fy_to in fiscal_year_bounds),
+            fiscal_year_bounds_values=SQL(",").join(SQL("(%(fy_from)s::date,%(fy_to)s::date)", fy_from=fy_from, fy_to=fy_to) for fy_from, fy_to in fiscal_year_bounds),
             other_company_ids=tuple(other_companies.ids),
             date_to=date_to,
             main_company_unit_factor=main_company_unit_factor,
